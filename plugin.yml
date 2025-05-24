@@ -1,0 +1,11 @@
+name: spectronV2
+main: TheWindows\spectron\Loader
+api: 5.0.0
+author: TheWindows
+description: "ReCreated By TheWindows"
+version: 1.9.0
+
+permissions:
+  spectron.command.spectron:
+    description: "Control fake player"
+    default: op
