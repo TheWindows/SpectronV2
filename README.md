@@ -1,6 +1,6 @@
 # ❔ | How This Plugin Work?
 
-> make Make Sure You Have Permissions Or Op On The Server
+> Make Sure You Have Permissions Or Op On The Server
 
 - You Can Add Fake Players To Your Server With No Limit!
 - You Can Fully Customize The Fake Player For Example:
