@@ -2,6 +2,8 @@
 
 > Make Sure You Have Permissions Or Op On The Server
 
+> This Is A Recreated Fake Player Plugin By Muqsit
+
 - You Can Add Fake Players To Your Server With No Limit!
 - You Can Fully Customize The Fake Player For Example:
 - You Can Turn Off Pvp Mode
