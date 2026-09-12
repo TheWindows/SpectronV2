@@ -14,7 +14,7 @@ use pocketmine\network\mcpe\PacketBroadcaster;
 use pocketmine\network\mcpe\PacketSender;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
-use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
+use TheWindows\spectron\util\PacketUtils;
 use pocketmine\network\NetworkSessionManager;
 use pocketmine\player\Player;
 use pocketmine\promise\PromiseResolver;
@@ -95,12 +95,41 @@ class spectronNetworkSession extends NetworkSession{
 
 	public function addToSendBuffer(string $buffer) : void{
 		parent::addToSendBuffer($buffer);
+		if(count($this->packet_listeners) === 0){
+			return;
+		}
+
 		$rp = new ReflectionProperty(NetworkSession::class, 'packetPool');
 		$packetPool = $rp->getValue($this);
 		$packet = $packetPool->getPacket($buffer);
-		$packet->decode(PacketSerializer::decoder(ProtocolInfo::CURRENT_PROTOCOL, $buffer, 0));  
+		if($packet === null){
+			return;
+		}
+
+		$hasInterestedListener = false;
 		foreach($this->packet_listeners as $listener){
-			$listener->onPacketSend($packet, $this);
+			if($listener instanceof spectronSpecificPacketListener){
+				if($listener->hasListener($packet::class)){
+					$hasInterestedListener = true;
+					break;
+				}
+			}else{
+				$hasInterestedListener = true;
+				break;
+			}
+		}
+
+		if(!$hasInterestedListener){
+			return;
+		}
+
+		try{
+			PacketUtils::decodePacket($packet, $buffer);
+			foreach($this->packet_listeners as $listener){
+				$listener->onPacketSend($packet, $this);
+			}
+		}catch(\Throwable $e){
+			// Ignore packets that cannot be decoded clientbound or threw an error
 		}
 	}
 

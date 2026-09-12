@@ -11,9 +11,8 @@ use pocketmine\block\VanillaBlocks;
 use pocketmine\block\Water;
 use pocketmine\block\Lava;
 use pocketmine\block\Grass;
-use pocketmine\block\Log;
 use pocketmine\block\Wheat;
-use pocketmine\block\Sign;
+use pocketmine\block\BaseSign;
 use pocketmine\block\TallGrass;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Human;
@@ -21,10 +20,6 @@ use pocketmine\entity\object\ItemEntity;
 use pocketmine\item\Item;
 use pocketmine\item\Sword;
 use pocketmine\item\Armor;
-use pocketmine\item\Helmet;
-use pocketmine\item\Chestplate;
-use pocketmine\item\Leggings;
-use pocketmine\item\Boots;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
 use pocketmine\math\Facing;
@@ -97,7 +92,7 @@ final class TryChangeMovementInternalspectronBehaviour implements spectronBehavi
                 continue;
             }
             $block = $world->getBlockAt((int) $check_pos->x, (int) $check_pos->y, (int) $check_pos->z);
-            if($block instanceof Wheat || $block instanceof Sign || $block instanceof TallGrass || !$block->isSolid() && empty($block->getCollisionBoxes())){
+            if($block instanceof Wheat || $block instanceof BaseSign || $block instanceof TallGrass || !$block->isSolid() && empty($block->getCollisionBoxes())){
                 continue; 
             }
             $above = $world->getBlockAt((int) $check_pos->x, (int) $check_pos->y + 1, (int) $check_pos->z);
@@ -399,13 +394,7 @@ final class TryChangeMovementInternalspectronBehaviour implements spectronBehavi
         $inventory = $player->getInventory();
         $armor_inventory = $player->getArmorInventory();
         if($item instanceof Armor){
-            $slot = match(true){
-                $item instanceof Helmet => 0,
-                $item instanceof Chestplate => 1,
-                $item instanceof Leggings => 2,
-                $item instanceof Boots => 3,
-                default => -1
-            };
+            $slot = $item->getArmorSlot();
             if($slot === -1){
                 $player->getServer()->getLogger()->debug("Rejected armor " . $item->getName() . ": invalid armor type");
                 return false;

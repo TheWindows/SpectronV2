@@ -38,6 +38,18 @@ final class spectronSpecificPacketListener implements spectronPacketListener{
 		return count($this->listeners) === 0;
 	}
 
+	public function hasListener(string $packetClass) : bool{
+		if(isset($this->listeners[$packetClass])){
+			return true;
+		}
+		foreach($this->listeners as $registeredClass => $_){
+			if(is_a($packetClass, $registeredClass, true)){
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public function onPacketSend(ClientboundPacket $packet, NetworkSession $session) : void{
 		if(isset($this->listeners[$class = $packet::class])){
 			foreach($this->listeners[$class] as $listener){

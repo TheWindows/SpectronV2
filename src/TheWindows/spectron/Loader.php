@@ -22,10 +22,9 @@ use pocketmine\network\mcpe\convert\TypeConverter;
 use pocketmine\network\mcpe\protocol\PacketPool;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\ResourcePackClientResponsePacket;
-use pocketmine\network\mcpe\protocol\serializer\PacketSerializer;
+use TheWindows\spectron\util\PacketUtils;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\InputMode;
-use pocketmine\network\mcpe\protocol\types\login\ClientData;
 use pocketmine\network\mcpe\StandardEntityEventBroadcaster;
 use pocketmine\network\mcpe\StandardPacketBroadcaster;
 use pocketmine\player\Player;
@@ -86,10 +85,20 @@ final class Loader extends PluginBase implements Listener{
        |_|                      ReCreated By TheWindows©
                                
         ");
-        $client_data = new ReflectionClass(ClientData::class);
+        $client_data_class = class_exists(\pocketmine\network\mcpe\protocol\types\login\clientdata\ClientData::class)
+            ? \pocketmine\network\mcpe\protocol\types\login\clientdata\ClientData::class
+            : (class_exists(\pocketmine\network\mcpe\protocol\types\login\ClientData::class)
+                ? \pocketmine\network\mcpe\protocol\types\login\ClientData::class
+                : throw new RuntimeException("Could not find ClientData class"));
+
+        if(!class_exists(\pocketmine\network\mcpe\protocol\types\login\ClientData::class, false)){
+            class_alias($client_data_class, \pocketmine\network\mcpe\protocol\types\login\ClientData::class);
+        }
+
+        $client_data = new ReflectionClass($client_data_class);
         foreach($client_data->getProperties() as $property){
             $comment = $property->getDocComment();
-            if($comment === false || !in_array("@required", explode(PHP_EOL, $comment), true)){
+            if($comment === false || !str_contains($comment, "@required")){
                 continue;
             }
 
@@ -103,7 +112,7 @@ final class Loader extends PluginBase implements Listener{
                 "int" => 0,
                 "array" => [],
                 "bool" => false,
-                default => throw new RuntimeException("Cannot map default value for property: " . ClientData::class . "::{$property_name}")
+                default => throw new RuntimeException("Cannot map default value for property: " . $client_data_class . "::{$property_name}")
             };
         }
 
@@ -568,9 +577,8 @@ final class Loader extends PluginBase implements Listener{
         $rp->invoke($session);
 
         $packet = ResourcePackClientResponsePacket::create(ResourcePackClientResponsePacket::STATUS_COMPLETED, []);
-        $serializer = PacketSerializer::encoder(ProtocolInfo::CURRENT_PROTOCOL);
-        $packet->encode($serializer);
-        $session->handleDataPacket($packet, $serializer->getBuffer());
+        $buffer = PacketUtils::encodePacket($packet);
+        $session->handleDataPacket($packet, $buffer);
 
         $internal_resolver->getPromise()->onCompletion(function(Player $player) use($info, $session) : void{
             $player->setViewDistance(4);
